@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="kk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Jumis Eseptegish v6.1 Ultimate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { 
+            --accent-color: #0A84FF; 
+            --bg-color: #05070A; 
+            --card-color: rgba(22, 27, 34, 0.75); 
+        }
+        
+        body { 
+            background-color: var(--bg-color); 
+            color: #ffffff; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+
+        .glass { 
+            background: var(--card-color); 
+            backdrop-filter: blur(25px); 
+            -webkit-backdrop-filter: blur(25px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 25px rgba(10, 132, 255, 0.4); }
+            50% { box-shadow: 0 0 45px rgba(10, 132, 255, 0.8); }
+        }
+        .glow-effect { animation: pulseGlow 3s infinite ease-in-out; }
+
+        @keyframes fadeInSlideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-enter { animation: fadeInSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes fadeOutSlideDown {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to { opacity: 0; transform: translateY(-20px) scale(0.95); }
+        }
+        .animate-exit { animation: fadeOutSlideDown 0.4s cubic-bezier(0.7, 0, 0.84, 0) forwards; }
+
+        body.theme-ios { --bg-color: #000000; --card-color: rgba(28,28,30,0.85); --accent-color: #0A84FF; }
+        body.theme-neon { --bg-color: #030a16; --card-color: rgba(10,25,47,0.85); --accent-color: #00f2fe; }
+        body.theme-gold { --bg-color: #0d0c08; --card-color: rgba(30,26,20,0.85); --accent-color: #f6d365; }
+
+        .accent-bg { background-color: var(--accent-color); }
+        .accent-text { color: var(--accent-color); }
+        .accent-border { border-color: var(--accent-color); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto pb-8 select-none theme-ios" id="app-body">
+
+    <!-- 1-ЭКРАН: СӘЛЕМДЕСУ -->
+    <div id="screen-welcome" class="hidden flex-1 flex flex-col justify-center items-center my-auto space-y-8 text-center py-10 animate-enter">
+        <div class="relative">
+            <div class="absolute -inset-1 rounded-3xl accent-bg blur-lg opacity-70 animate-pulse"></div>
+            <div class="relative w-28 h-28 bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 rounded-3xl flex items-center justify-center shadow-2xl border border-white/20">
+                <i data-lucide="user-check" class="w-14 h-14 text-white"></i>
+            </div>
+        </div>
+
+        <div class="space-y-2">
+            <h1 class="text-3xl font-black tracking-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+                Қош келдіңіз!
+            </h1>
+            <p class="text-xs text-zinc-400 max-w-xs mx-auto leading-relaxed">
+                Жұмыс уақыты мен жалақыны есептеуді бастау үшін аты-жөніңізді енгізіңіз
+            </p>
+        </div>
+
+        <div class="w-full space-y-4 max-w-xs">
+            <div class="relative">
+                <input type="text" id="input-welcome-name" placeholder="Аты-жөніңізді енгізіңіз" 
+                    class="w-full bg-white/5 border border-white/15 rounded-2xl px-4 py-4 text-white placeholder-zinc-500 outline-none focus:border-blue-500 focus:bg-white/10 text-center font-semibold transition-all duration-300 text-base shadow-inner">
+            </div>
+
+            <button onclick="submitWelcomeName()" class="w-full accent-bg hover:opacity-90 text-black font-extrabold py-4 rounded-2xl shadow-xl shadow-blue-500/20 active:scale-95 transition-all duration-200 text-sm flex items-center justify-center space-x-2">
+                <span>Жұмысқа кірісу</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 2-ЭКРАН: НЕГІЗГІ ЖҰМЫС АЛАҢЫ -->
+    <div id="screen-dashboard" class="hidden space-y-4">
+        
+        <!-- HEADER & THEME SELECTOR -->
+        <div class="flex justify-between items-center mb-1">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl accent-bg flex items-center justify-center font-black text-black text-lg shadow-lg relative overflow-hidden glow-effect">
+                    <span class="relative z-10 tracking-tighter">JE</span>
+                </div>
+                <div>
+                    <span class="font-extrabold text-base tracking-tight block">Jumis Eseptegish</span>
+                    <span class="text-[10px] accent-text font-semibold block -mt-1 tracking-wider uppercase">v6.1 Ultimate</span>
+                </div>
+            </div>
+            
+            <div class="flex bg-white/10 rounded-2xl p-1 border border-white/10 space-x-1">
+                <button onclick="setTheme('ios')" class="w-5 h-5 rounded-lg bg-blue-500 border border-white/30 transition hover:scale-110"></button>
+                <button onclick="setTheme('neon')" class="w-5 h-5 rounded-lg bg-cyan-400 border border-white/30 transition hover:scale-110"></button>
+                <button onclick="setTheme('gold')" class="w-5 h-5 rounded-lg bg-amber-400 border border-white/30 transition hover:scale-110"></button>
+            </div>
+        </div>
+
+        <!-- NOTIFICATION BANNER (ТЕК 1 РЕТ ШЫҒАДЫ) -->
+        <div id="notif-one-time-banner" class="hidden glass rounded-2xl p-3 flex justify-between items-center bg-blue-500/10 border-blue-500/30 animate-enter">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-blue-500/20 rounded-xl accent-text">
+                    <i data-lucide="bell" class="w-4 h-4 animate-bounce"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-white">Кешкі 17:00 ескертуі</p>
+                    <p class="text-[10px] text-zinc-400">Сменаны жабуды ұмытпау үшін</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-1">
+                <button onclick="allowNotificationOnce()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-md active:scale-95 transition">
+                    Қосу
+                </button>
+                <button onclick="closeNotificationForever()" class="text-zinc-500 hover:text-white p-1.5">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- USER & RATE CARD -->
+        <div class="glass rounded-3xl p-4 flex justify-between items-center border border-white/10">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="changeNamePrompt()">
+                <div class="w-11 h-11 accent-bg rounded-2xl flex items-center justify-center font-black text-black text-lg shadow-lg" id="avatar-letter">U</div>
+                <div>
+                    <div class="flex items-center space-x-1 text-zinc-400">
+                        <span class="text-[10px] uppercase tracking-wider font-semibold">Жұмысшы</span>
+                        <i data-lucide="edit-2" class="w-2.5 h-2.5"></i>
+                    </div>
+                    <h1 id="display-name" class="font-bold text-sm text-white tracking-tight">---</h1>
+                </div>
+            </div>
+            
+            <div onclick="editHourlyRate()" class="text-right bg-white/5 hover:bg-white/10 px-3 py-2 rounded-2xl border border-white/10 cursor-pointer transition">
+                <p class="text-[10px] text-zinc-400 font-medium">Ставка</p>
+                <p class="text-xs font-bold text-emerald-400" id="display-rate">1 000 ₸/сағ</p>
+            </div>
+        </div>
+
+        <!-- MONTH SELECTOR (АЙДЫ ТАҢДАУ КАЛЕНДАРЫ) -->
+        <div class="glass rounded-2xl p-2.5 flex items-center space-x-2 px-3">
+            <i data-lucide="calendar" class="w-4 h-4 accent-text"></i>
+            <span class="text-xs text-zinc-400 font-medium">Ай:</span>
+            <input type="month" id="month-picker" onchange="renderApp()" class="bg-transparent text-xs text-white outline-none flex-1 font-semibold cursor-pointer">
+        </div>
+
+        <!-- LIVE TIMER (СЕКУНДОМЕР) -->
+        <div class="glass p-4 rounded-3xl space-y-3 border accent-border relative overflow-hidden">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="timer" class="w-4 h-4 accent-text"></i>
+                    <h3 class="text-xs font-bold text-white">Live Смена (Секундомер)</h3>
+                </div>
+                <span id="shift-status" class="text-[10px] bg-red-500/20 text-red-400 px-2.5 py-0.5 rounded-full font-bold">Тоқтатылды</span>
+            </div>
+            
+            <div class="text-center py-2 bg-black/30 rounded-2xl border border-white/5">
+                <div id="timer-display" class="text-3xl font-black tracking-widest text-white font-mono">00:00:00</div>
+                <p class="text-xs accent-text font-bold mt-0.5" id="timer-money">0 ₸ таптыңыз</p>
+            </div>
+
+            <button onclick="toggleShift()" id="btn-shift-toggle" class="w-full accent-bg text-black font-extrabold py-3 rounded-2xl shadow-lg active:scale-95 transition duration-200 text-xs flex items-center justify-center space-x-2">
+                <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                <span id="lbl-shift-btn">Сменаны бастау</span>
+            </button>
+        </div>
+
+        <!-- MANUAL DAILY CHECK-IN (ҚОЛМЕН САҒАТ ТІРКЕУ) -->
+        <div class="glass p-4 rounded-3xl space-y-3 bg-gradient-to-r from-blue-900/20 to-indigo-900/20 border border-blue-500/30">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-xs font-bold text-white">Қолмен сағат қосу</h3>
+                    <p class="text-[10px] text-zinc-400" id="today-date-str">---</p>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <span class="text-xs font-semibold text-zinc-300">Сағат:</span>
+                    <select id="today-hours-select" class="bg-white/10 text-blue-400 font-bold text-xs border border-white/10 rounded-xl px-2 py-1 outline-none">
+                        <option value="9" selected class="bg-zinc-900 text-white">9 сағ</option>
+                        <option value="8" class="bg-zinc-900 text-white">8 сағ</option>
+                        <option value="7" class="bg-zinc-900 text-white">7 сағ</option>
+                        <option value="6" class="bg-zinc-900 text-white">6 сағ</option>
+                        <option value="5" class="bg-zinc-900 text-white">5 сағ</option>
+                        <option value="4" class="bg-zinc-900 text-white">4 сағ</option>
+                        <option value="3" class="bg-zinc-900 text-white">3 сағ</option>
+                        <option value="2" class="bg-zinc-900 text-white">2 сағ</option>
+                        <option value="1" class="bg-zinc-900 text-white">1 сағ</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="checkInToday()" id="btn-clock-in" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-2xl shadow-lg active:scale-95 transition text-xs flex items-center justify-center space-x-2">
+                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                <span id="lbl-btn-clock">Бүгінгі жұмысты сақтау (+1 күн)</span>
+            </button>
+        </div>
+
+        <!-- COUNTERS STATS -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="glass p-4 rounded-3xl">
+                <p class="text-[11px] text-zinc-400 font-medium">Осы айдағы сағат</p>
+                <div class="flex items-baseline space-x-1 mt-1">
+                    <span id="total-hours" class="text-2xl font-bold text-white">0</span>
+                    <span class="text-xs text-zinc-500">сағ</span>
+                </div>
+            </div>
+
+            <div class="glass p-4 rounded-3xl border-emerald-500/20">
+                <p class="text-[11px] text-zinc-400 font-medium">Табылған ақша</p>
+                <div class="flex items-baseline space-x-1 mt-1">
+                    <span id="total-money" class="text-2xl font-bold text-emerald-400">0</span>
+                    <span class="text-xs text-emerald-500">₸</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOGGED DAYS LIST -->
+        <div class="space-y-2">
+            <div class="flex justify-between items-center px-1">
+                <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Тіркелген күндер тізімі</h3>
+                <span id="days-count" class="text-[10px] bg-white/10 px-2 py-0.5 rounded-full text-zinc-300">0 күн</span>
+            </div>
+            <div id="days-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- MONTHLY HISTORY ARCHIVE -->
+        <div class="space-y-2 pt-2 border-t border-white/10">
+            <div class="flex justify-between items-center px-1">
+                <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Айлар бойынша тарих</h3>
+                <i data-lucide="history" class="w-3.5 h-3.5 text-zinc-400"></i>
+            </div>
+            <div id="history-list" class="space-y-2"></div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let shiftStartTime = null;
+        let timerInterval = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const now = new Date();
+            document.getElementById('month-picker').value = now.toISOString().slice(0, 7);
+
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+                const tgUser = window.Telegram.WebApp.initDataUnsafe?.user;
+                if (tgUser && !localStorage.getItem('work_user_name')) {
+                    const fullName = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim();
+                    localStorage.setItem('work_user_name', fullName || tgUser.username);
+                }
+            }
+
+            const savedName = localStorage.getItem('work_user_name');
+            if (!savedName) {
+                showScreen('screen-welcome');
+            } else {
+                updateUserDisplay(savedName);
+                showScreen('screen-dashboard');
+            }
+
+            checkOneTimeNotification();
+
+            const savedTheme = localStorage.getItem('app_theme') || 'ios';
+            setTheme(savedTheme);
+
+            checkActiveShift();
+            renderApp();
+            if (window.lucide) lucide.createIcons();
+        });
+
+        function showScreen(screenId) {
+            const welcome = document.getElementById('screen-welcome');
+            const dashboard = document.getElementById('screen-dashboard');
+
+            if (screenId === 'screen-welcome') {
+                welcome.classList.remove('hidden');
+                dashboard.classList.add('hidden');
+            } else {
+                welcome.classList.add('animate-exit');
+                setTimeout(() => {
+                    welcome.classList.add('hidden');
+                    welcome.classList.remove('animate-exit');
+                    dashboard.classList.remove('hidden');
+                    dashboard.classList.add('animate-enter');
+                }, 300);
+            }
+        }
+
+        function submitWelcomeName() {
+            const nameInput = document.getElementById('input-welcome-name').value.trim();
+            if (nameInput) {
+                localStorage.setItem('work_user_name', nameInput);
+                updateUserDisplay(nameInput);
+                showScreen('screen-dashboard');
+            } else {
+                alert('Өтініш, аты-жөніңізді енгізіңіз!');
+            }
+        }
+
+        function changeNamePrompt() {
+            const current = localStorage.getItem('work_user_name') || '';
+            const input = prompt("Жаңа аты-жөніңізді енгізіңіз:", current);
+            if (input && input.trim()) {
+                localStorage.setItem('work_user_name', input.trim());
+                updateUserDisplay(input.trim());
+            }
+        }
+
+        function updateUserDisplay(name) {
+            document.getElementById('display-name').innerText = name;
+            document.getElementById('avatar-letter').innerText = name.charAt(0).toUpperCase();
+        }
+
+        function checkOneTimeNotification() {
+            const notifAnswered = localStorage.getItem('notif_prompt_answered');
+            if (!notifAnswered && 'Notification' in window && Notification.permission !== 'granted') {
+                document.getElementById('notif-one-time-banner').classList.remove('hidden');
+            }
+        }
+
+        function allowNotificationOnce() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    localStorage.setItem('notif_prompt_answered', 'true');
+                    document.getElementById('notif-one-time-banner').classList.add('hidden');
+                });
+            }
+        }
+
+        function closeNotificationForever() {
+            localStorage.setItem('notif_prompt_answered', 'true');
+            document.getElementById('notif-one-time-banner').classList.add('hidden');
+        }
+
+        function setTheme(theme) {
+            document.body.className = `min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto pb-8 select-none theme-${theme}`;
+            localStorage.setItem('app_theme', theme);
+        }
+
+        function editHourlyRate() {
+            const current = Number(localStorage.getItem('hourly_rate') || 1000);
+            const input = prompt("Сағаттық ставкаңыз (₸):", current);
+            if (input && !isNaN(input) && Number(input) > 0) {
+                localStorage.setItem('hourly_rate', input);
+                renderApp();
+            }
+        }
+
+        function getWorkLog() {
+            return JSON.parse(localStorage.getItem('work_log_v3') || '{}');
+        }
+
+        function saveWorkLog(log) {
+            localStorage.setItem('work_log_v3', JSON.stringify(log));
+        }
+
+        function getTodayStr() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function checkInToday() {
+            const todayStr = getTodayStr();
+            const hours = Number(document.getElementById('today-hours-select').value);
+            
+            let log = getWorkLog();
+            log[todayStr] = hours;
+            saveWorkLog(log);
+
+            renderApp();
+        }
+
+        function removeDayLog(dateStr) {
+            let log = getWorkLog();
+            delete log[dateStr];
+            saveWorkLog(log);
+            renderApp();
+        }
+
+        function updateDayHours(dateStr, hours) {
+            let log = getWorkLog();
+            log[dateStr] = Number(hours);
+            saveWorkLog(log);
+            renderApp();
+        }
+
+        /* SHIFT TIMER LOGIC */
+        function toggleShift() {
+            if (shiftStartTime) {
+                const elapsedSeconds = Math.floor((Date.now() - shiftStartTime) / 1000);
+                const workedHours = parseFloat((elapsedSeconds / 3600).toFixed(2));
+                
+                if (workedHours > 0.001) {
+                    const todayStr = getTodayStr();
+                    let log = getWorkLog();
+                    log[todayStr] = parseFloat(((log[todayStr] || 0) + workedHours).toFixed(2));
+                    saveWorkLog(log);
+                }
+                
+                clearInterval(timerInterval);
+                shiftStartTime = null;
+                localStorage.removeItem('active_shift_start');
+                updateShiftUI(false);
+                renderApp();
+            } else {
+                shiftStartTime = Date.now();
+                localStorage.setItem('active_shift_start', shiftStartTime);
+                startTimer();
+                updateShiftUI(true);
+            }
+        }
+
+        function checkActiveShift() {
+            const savedStart = localStorage.getItem('active_shift_start');
+            if (savedStart) {
+                shiftStartTime = Number(savedStart);
+                startTimer();
+                updateShiftUI(true);
+            }
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const seconds = Math.floor((Date.now() - shiftStartTime) / 1000);
+                const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
+                const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+                const secs = String(seconds % 60).padStart(2, '0');
+                document.getElementById('timer-display').innerText = `${hrs}:${mins}:${secs}`;
+
+                const rate = Number(localStorage.getItem('hourly_rate') || 1000);
+                const earned = ((seconds / 3600) * rate).toFixed(0);
+                document.getElementById('timer-money').innerText = `${Number(earned).toLocaleString()} ₸ таптыңыз`;
+            }, 1000);
+        }
+
+        function updateShiftUI(isActive) {
+            const statusEl = document.getElementById('shift-status');
+            const btnLbl = document.getElementById('lbl-shift-btn');
+            if (isActive) {
+                statusEl.innerText = "Жұмыс жүріп жатыр...";
+                statusEl.className = "text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full font-bold animate-pulse";
+                btnLbl.innerText = "Сменаны аяқтау (Сақтау)";
+            } else {
+                statusEl.innerText = "Тоқтатылды";
+                statusEl.className = "text-[10px] bg-red-500/20 text-red-400 px-2.5 py-0.5 rounded-full font-bold";
+                btnLbl.innerText = "Сменаны бастау";
+                document.getElementById('timer-display').innerText = "00:00:00";
+                document.getElementById('timer-money').innerText = "0 ₸ таптыңыз";
+            }
+        }
+
+        function renderApp() {
+            const selectedMonth = document.getElementById('month-picker').value;
+            const rate = Number(localStorage.getItem('hourly_rate') || 1000);
+            document.getElementById('display-rate').innerText = `${rate.toLocaleString()} ₸/сағ`;
+
+            const todayObj = new Date();
+            document.getElementById('today-date-str').innerText = todayObj.toLocaleDateString('kk-KZ', { day: 'numeric', month: 'long', weekday: 'long' });
+
+            const log = getWorkLog();
+            const todayStr = getTodayStr();
+
+            const btnClock = document.getElementById('btn-clock-in');
+            if (log[todayStr] !== undefined) {
+                btnClock.disabled = true;
+                btnClock.className = "w-full bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-bold py-3 rounded-2xl transition text-xs flex items-center justify-center space-x-2";
+                document.getElementById('lbl-btn-clock').innerText = "Бүгінгі күн тіркелген! ✓";
+            } else {
+                btnClock.disabled = false;
+                btnClock.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-2xl shadow-lg active:scale-95 transition text-xs flex items-center justify-center space-x-2";
+                document.getElementById('lbl-btn-clock').innerText = "Бүгінгі жұмысты сақтау (+1 күн)";
+            }
+
+            let monthHoursSum = 0;
+            let monthDaysCount = 0;
+            let daysHtml = '';
+            let monthlyTotals = {};
+
+            Object.keys(log).sort().reverse().forEach(dateStr => {
+                const hours = log[dateStr];
+                const dateMonth = dateStr.slice(0, 7);
+                const money = hours * rate;
+
+                if (!monthlyTotals[dateMonth]) {
+                    monthlyTotals[dateMonth] = { hours: 0, money: 0, count: 0 };
+                }
+                monthlyTotals[dateMonth].hours += hours;
+                monthlyTotals[dateMonth].money += money;
+                monthlyTotals[dateMonth].count += 1;
+
+                if (dateMonth === selectedMonth) {
+                    monthHoursSum += hours;
+                    monthDaysCount += 1;
+
+                    const dateParts = dateStr.split('-').map(Number);
+                    const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                    const formattedDate = dateObj.toLocaleDateString('kk-KZ', { day: 'numeric', month: 'short', weekday: 'short' });
+
+                    let optionsHtml = '';
+                    for (let h = 1; h <= 12; h++) {
+                        optionsHtml += `<option value="${h}" ${h === Math.round(hours) ? 'selected' : ''} class="bg-zinc-900 text-white">${h} сағ</option>`;
+                    }
+
+                    daysHtml += `
+                        <div class="glass p-3 rounded-2xl flex justify-between items-center text-xs border border-white/5">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full accent-bg"></span>
+                                <span class="capitalize text-zinc-200 font-medium">${formattedDate}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <select onchange="updateDayHours('${dateStr}', this.value)" class="bg-white/10 text-blue-400 font-semibold border border-white/10 rounded-xl px-2 py-1 outline-none">
+                                    ${optionsHtml}
+                                </select>
+                                <span class="font-bold text-emerald-400">${(hours * rate).toLocaleString()} ₸</span>
+                                <button onclick="removeDayLog('${dateStr}')" class="text-zinc-500 hover:text-red-400 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            document.getElementById('total-hours').innerText = monthHoursSum.toFixed(1);
+            document.getElementById('total-money').innerText = (monthHoursSum * rate).toLocaleString();
+            document.getElementById('days-count').innerText = `${monthDaysCount} күн`;
+            document.getElementById('days-list').innerHTML = daysHtml || '<p class="text-xs text-zinc-500 text-center py-4">Бұл айда әлі тіркелген күн жоқ</p>';
+
+            let historyHtml = '';
+            Object.keys(monthlyTotals).sort().reverse().forEach(m => {
+                const [y, mon] = m.split('-').map(Number);
+                const dObj = new Date(y, mon - 1, 1);
+                const monthName = dObj.toLocaleDateString('kk-KZ', { month: 'long', year: 'numeric' });
+
+                historyHtml += `
+                    <div class="glass p-3 rounded-2xl flex justify-between items-center text-xs border border-white/5">
+                        <div>
+                            <p class="capitalize font-bold text-white">${monthName}</p>
+                            <p class="text-[10px] text-zinc-400">${monthlyTotals[m].count} күн &bull; ${monthlyTotals[m].hours.toFixed(1)} сағат</p>
+                        </div>
+                        <span class="font-black text-emerald-400 text-sm">${monthlyTotals[m].money.toLocaleString()} ₸</span>
+                    </div>
+                `;
+            });
+            document.getElementById('history-list').innerHTML = historyHtml || '<p class="text-xs text-zinc-600 text-center">Тарих бос</p>';
+
+            if (window.lucide) lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
